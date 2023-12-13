@@ -27,6 +27,7 @@ void ShowAboutLogin();
 int IsLogin(int num);
 void Enroll();
 void Login();
+void ChangePW();
 
 /**
  * @brief 注册登录页面显示
@@ -59,14 +60,14 @@ void Enroll(){
     FILE *fp;   //访问文件的指针
     int get_time = 0;
 
-    if((fp = fopen("users", "r")) == NULL){ //以只读方式打开users.txt
+    if((fp = fopen("users", "r")) == NULL){ //以只读方式打开users
         printf("无效注册\n");
         return;
     }
 
     printf("\t欢迎来到注册页面!\n");
     printf("\t请输入用户名, 至多六位\n");
-    scanf("%6s", &NewUser.name);
+    scanf("%6s", NewUser.name);
 
     while (fread(&TempUser, sizeof(Users), 1, fp) == 1) {
         if (strcmp(NewUser.name, TempUser.name) == 0) {
@@ -79,11 +80,11 @@ void Enroll(){
     fclose(fp);
 
     printf("\t请输入密码, 至多六位\n");
-	scanf("%6s", &NewUser.pw);
+	scanf("%6s", NewUser.pw);
 
     NewUser.id = ID_BASE + ID_ADD * get_time;
 
-    if((fp = fopen("users", "a")) == NULL){ //以写方式打开users.txt， w会覆盖原文件内容，这里用a
+    if((fp = fopen("users", "a")) == NULL){ //以写方式打开users， w会覆盖原文件内容，这里用a
         printf("\t账号注册失败,请重试\n");
         return;
     }
@@ -103,19 +104,19 @@ void Login(){
     Users OldUser, TempUser;
     FILE *fp;   //访问文件的指针
 
-    if((fp = fopen("users", "r")) == NULL){ //以只读方式打开users.txt
+    if((fp = fopen("users", "r")) == NULL){ //以只读方式打开users
         printf("无效登录\n");
         return;
     }   
 
     printf("\t欢迎来到登录页面!\n");
     printf("\t请输入用户名\n");
-    scanf("%6s", &OldUser.name);
+    scanf("%6s", OldUser.name);
 
     while (fread(&TempUser, sizeof(Users), 1, fp) == 1) {
         if (strcmp(OldUser.name, TempUser.name) == 0) {
             printf("\t请输入密码, 至多六位\n");
-	        scanf("%6s", &OldUser.pw);
+	        scanf("%6s", OldUser.pw);
             if(strcmp(OldUser.pw, TempUser.pw) == 0){
                 printf("\t账号登录成功!\n");  
                 printf("\t欢迎%s!\n", TempUser.name);  
@@ -138,6 +139,42 @@ void Login(){
 
     if(get_status == 1) Enroll();
     return;
+}
+
+/**
+ * @brief 修改密码
+ * 
+ */
+void ChangePW(){
+    Users OldUser, TempUser;
+    FILE *fp;   //访问文件的指针
+
+    if((fp = fopen("users", "r+")) == NULL){ //以读写方式打开users
+        printf("无效操作\n");
+        return;
+    }   
+
+    printf("确认需要修改密码吗?\n");
+    printf("确认的话,请再输入用户名进行确认:");
+    scanf("%6s", OldUser.name);  
+
+    while (fread(&TempUser, sizeof(Users), 1, fp) == 1) {
+        if (strcmp(OldUser.name, TempUser.name) == 0) {
+            printf("\t请输入新密码\n");
+            scanf("%s", OldUser.pw);
+            OldUser.id = TempUser.id;
+            if(strcmp(OldUser.pw, TempUser.pw) == 0){   //新密码与原密码一致
+                printf("新密码与原密码一致，请重新操作\n");
+                return;
+            }
+            fseek(fp, -(int)(sizeof(Users)), SEEK_CUR); //从当前文件指针位置开始计算偏移
+            fwrite(&OldUser, sizeof(Users), 1, fp);
+            printf("\t密码修改成功!\n");
+            fclose(fp);
+            fp = NULL;
+            break;
+        }
+    }
 }
 
 /**
