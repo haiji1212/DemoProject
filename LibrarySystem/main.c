@@ -23,6 +23,7 @@ typedef struct Users{
 void ShowAboutLogin();
 int IsLogin(int num);
 void Enroll();
+void Login();
 
 /**
  * @brief 注册登录页面显示
@@ -38,17 +39,16 @@ void ShowAboutLogin(){
 
 int IsLogin(int num){
     if(num == 1){
-        //TODO:注册
         Enroll();
     }else if(num == 2){
-        //TODO:登录
+        Login();
     }else
     printf("输入无效\n");
     return 0;
 }
 
 /**
- * @brief 注册函数
+ * @brief 注册
  * 
  */
 void Enroll(){
@@ -85,6 +85,49 @@ void Enroll(){
 	printf("\t账号注册成功!\n");
 	fclose(fp);
 	fp = NULL;
+    return;
+}
+
+/**
+ * @brief 登录
+ * 
+ */
+void Login(){
+    Users OldUser, TempUser;
+    FILE *fp;   //访问文件的指针
+
+    if((fp = fopen("users.txt", "r")) == NULL){ //以只读方式打开users.txt
+        printf("无效登录\n");
+        return;
+    }   
+
+    printf("\t欢迎来到登录页面!\n");
+    printf("\t请输入 ID, 至多六位\n");
+    scanf("%6s", &OldUser.id);
+
+    while (fread(&TempUser, sizeof(Users), 1, fp) == 1) {
+        if (strcmp(OldUser.id, TempUser.id) == 0) {
+            printf("\t请输入 密码, 至多六位\n");
+	        scanf("%6s", &OldUser.pw);
+            if(strcmp(OldUser.pw, TempUser.pw) == 0){
+                printf("\t账号登录成功!\n");  
+                fclose(fp);
+                //todo:登录之后的菜单显示  
+                return;
+            }
+            else{
+                printf("\t密码输入错误,请重试!\n");  
+                fclose(fp);
+                return;                
+            }
+        }
+    }
+    printf("\t此账号未注册,注册请输入1,退出操作请输入0\n");
+
+    int get_status;
+    scanf("%d", &get_status);
+
+    if(get_status == 1) Enroll();
     return;
 }
 
