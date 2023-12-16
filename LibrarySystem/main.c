@@ -34,7 +34,7 @@ void Enroll();
 void Login();
 void ChangePW();
 void ShowAtAdmin();
-void ShowAtUser();
+void ShowAtUser(const Users *User);
 void ScanBook();
 void DeleteBook();
 void AddBook();
@@ -156,11 +156,14 @@ void Login(){
                 printf("\t欢迎%s!\n", TempUser.name);  
                 printf("\t您的id为%d!\n", TempUser.id);  
                 fclose(fp);
-                //todo:登录之后的菜单显示
                 if(strcmp(TempUser.name, ADMIN_NAME) == 0){   //如果是管理员，进入管理员页面
                     ShowAtAdmin();
-                }  
-                return;
+                    return;
+                }
+                else{   //如果不是管理员，进入普通用户页面
+                    ShowAtUser(&TempUser);   
+                    return;
+                }
             }
             else{
                 printf("\t密码输入错误,请重试!\n");  
@@ -439,14 +442,15 @@ void ScanUser(){
  * @brief 普通用户页面显示
  * 
  */
-void ShowAtUser(){
-    printf("*******************************\n");
-    printf("******* 您好 xx ********\n");   //TODO:需要传入实际用户信息
-    printf("******* 浏览图书库存,请输入 1 ********\n");
-    printf("******* 图书查询,请输入 2 ********\n");
-    printf("******* 借阅图书,请输入 3 ********\n");
-    printf("******* 修改密码,请输入 4 ********\n");
-    printf("*******************************\n");
+void ShowAtUser(const Users *User){
+    printf("************************************\n");
+    printf("************* 您好 %s *************\n", User->name);
+    printf("****** 浏览图书库存,请输入 1 ********\n");
+    printf("********* 图书查询,请输入 2 *********\n");
+    printf("********** 借阅图书,请输入 3 ********\n");
+    printf("********** 修改密码,请输入 4 ********\n");
+    printf("*************************************\n");
+    return;
 }
 
 /**
