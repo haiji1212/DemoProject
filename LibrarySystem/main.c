@@ -226,19 +226,36 @@ void ShowAtAdmin(){
     printf("********** 添加图书,请输入 3 *********\n");
     printf("******** 浏览用户信息,请输入 4 ********\n");
     printf("*************************************\n");
-    int get_num;
-    scanf("%d", &get_num);
-    if(get_num == 1){   //浏览图书库存
-        ScanBook();
-    }else if(get_num == 2){ //删除图书
-        DeleteBook();
-    }else if(get_num == 3){ //添加图书
-        AddBook();
-    }else if(get_num == 4){     //浏览用户信息
-        ScanUser();
-    }else{
-        printf("操作无效!\n");
-        return;
+    int get_flag = 0;   //标记首次进入此菜单
+    while(1){
+        if(get_flag){
+            printf("********返回上一级*********\n");
+            printf("**** 浏览图书库存,输入 1 ***\n");
+            printf("**** 删除图书,输入 2 ******\n");
+            printf("**** 添加图书,输入 3 ******\n");
+            printf("**** 浏览用户信息,输入 4 ***\n");
+            printf("**** 输入其他,退出操作 *****\n");
+        }
+        int get_num;
+        scanf("%d", &get_num);
+        get_flag = 1;
+        switch(get_num){
+            case 1: //浏览图书库存
+                ScanBook();
+                break;
+            case 2: //删除图书
+                DeleteBook();
+                break;
+            case 3: //添加图书
+                AddBook();
+                break;
+            case 4: //浏览用户信息
+                ScanUser();
+                break;
+            default:
+                printf("自动退出成功\n");
+                return;
+        }
     }
 }
 
