@@ -12,6 +12,7 @@
 #include<string.h>
 #include<stdlib.h>
 #include<time.h>
+#include <unistd.h>
 /**
  * @brief 账号定义和相关函数
  * 
@@ -229,6 +230,7 @@ void ShowAtAdmin(){
     int get_flag = 0;   //标记首次进入此菜单
     while(1){
         if(get_flag){
+            sleep(1);   //休眠1s
             printf("********返回上一级*********\n");
             printf("**** 浏览图书库存,输入 1 ***\n");
             printf("**** 删除图书,输入 2 ******\n");
