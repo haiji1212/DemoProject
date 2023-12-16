@@ -21,6 +21,7 @@
 #define ID_BASE 10020  //用户起始id
 #define ID_ADD  1
 #define ADMIN_NAME  "admin"   //管理员名称
+#define ADMIN_PW    "123456"    //管理员密码
 typedef struct Users{
     int id;    //用户id
     char name[MAX_NAME];    //用户名字
@@ -34,6 +35,7 @@ void ChangePW();
 void ShowAtAdmin();
 void ShowAtUser();
 void ScanBook();
+void DeleteBook();
 void AddBook();
 void ScanUser();
 
@@ -229,7 +231,7 @@ void ShowAtAdmin(){
     if(get_num == 1){   //浏览图书库存
         ScanBook();
     }else if(get_num == 2){ //删除图书
-
+        DeleteBook();
     }else if(get_num == 3){ //添加图书
         AddBook();
     }else if(get_num == 4){     //浏览用户信息
@@ -278,6 +280,41 @@ void ScanBook(){
         printf("%d\t%-20s\t%-20s\t%-20s\t%-20s\t%-10d\n", TempBook.index, TempBook.libname, TempBook.authorname, TempBook.publishname, temp_category, TempBook.num);
     }
     fclose(fp);
+    return;
+}
+
+/**
+ * @brief 删除图书
+ * 
+ */
+void DeleteBook(){
+    Libs OldBook, TempBook;
+    FILE *fp1, *fp2;   //访问文件的指针
+
+    if((fp1 = fopen("libs", "r")) == NULL){ //以只读方式打开libs
+        printf("无效操作,请重试!\n");
+        return;
+    }
+
+    if((fp2 = fopen("templibs", "w")) == NULL){ //以只写方式新建templibs
+        printf("无效操作,请重试!\n");
+        return;
+    }
+
+    printf("请输入需要删除的图书书名\n");
+    printf("删除图书:");
+    scanf("%20s", OldBook.libname);
+
+    while (fread(&TempBook, sizeof(Libs), 1, fp1) == 1) {
+        if (strcmp(OldBook.libname, TempBook.libname) != 0) {   //当前图书不是目标书籍
+            fwrite(&TempBook, sizeof(Libs), 1, fp2);
+        }
+    }
+    fclose(fp1);
+    fclose(fp2);
+    remove("libs");
+    rename("templibs","libs");
+    printf("删除成功！\n");
     return;
 }
 
