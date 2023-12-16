@@ -28,17 +28,6 @@ typedef struct Users{
     char name[MAX_NAME];    //用户名字
     char pw[MAX_PASSWORD];  //用户密码
 }Users;
-void ShowAboutLogin();
-int IsLogin(int num);
-void Enroll();
-void Login();
-void ChangePW();
-void ShowAtAdmin();
-void ShowAtUser(const Users *User);
-void ScanBook();
-void DeleteBook();
-void AddBook();
-void ScanUser();
 
 /**
  * @brief 图书定义和相关函数
@@ -62,6 +51,20 @@ typedef struct Libs{
     enum LibCategory category;  //书籍类别
     int num;    //书籍进库量
 }Libs;
+
+void ShowAboutLogin();
+int IsLogin(int num);
+void Enroll();
+void Login();
+void ChangePW();
+void ShowAtAdmin();
+void ShowAtUser(const Users *User);
+void ScanBook();
+void DeleteBook();
+void AddBook();
+void ScanUser();
+void SearchBook();
+void SuccessFind(const Libs *Lib);
 
 /**
  * @brief 注册登录页面显示
@@ -274,6 +277,68 @@ void ShowAtAdmin(){
 }
 
 /**
+ * @brief 普通用户页面显示
+ * 
+ * @param User:传入登录的用户信息
+ */
+void ShowAtUser(const Users *User){
+    sleep(1);   //休眠1s
+    printf("************************************\n");
+    printf("************* 您好 %s *************\n", User->name);
+    printf("****** 浏览图书库存,请输入 1 ********\n");
+    printf("********* 图书查询,请输入 2 *********\n");
+    printf("********* 借书登记,请输入 3 *********\n");
+    printf("****** 查看借阅信息,请输入 4 ********\n");
+    printf("********* 修改密码,请输入 5 *********\n");
+    printf("************************************\n");
+    int get_flag = 0;   //标记首次进入此菜单
+    while(1){
+        if(get_flag){
+            printf("********返回上一级*********\n");
+            printf("**** 浏览图书库存,输入 1 ***\n");
+            printf("**** 图书查询,输入 2 ******\n");
+            printf("**** 借书登记,输入 3 ******\n");
+            printf("**** 查看借阅信息,输入 4 ***\n");
+            printf("**** 修改密码,输入 5 *******\n");
+            printf("**** 输入其他,退出操作 *****\n");
+        }
+        int get_num;
+        scanf("%d", &get_num);
+        switch(get_num){
+            case 1: //浏览图书库存
+                ScanBook();
+                break;
+            case 2: //图书查询
+                SearchBook();
+                break;
+            case 3: //借书登记
+                
+                break;
+            case 4: //查看借阅信息
+                
+                break;
+            case 5: //修改密码
+                ChangePW();
+                break;
+            default:
+                printf("自动退出成功\n");
+                return;
+        }
+        printf("返回上一级,请输入 1\n");
+        printf("结束操作,请输入 0\n");
+        int temp = 0;
+        scanf("%d", &temp);
+        if(temp == 0)   return;
+        else if(temp == 1)  get_flag = 1;
+        else{
+            printf("操作无效,自动退出\n");
+            return;
+        }
+    }
+    return;
+}
+
+/**
  * @brief 浏览图书信息
  * 
  */
@@ -438,18 +503,128 @@ void ScanUser(){
     return;
 }
 
-/**
- * @brief 普通用户页面显示
- * 
- */
-void ShowAtUser(const Users *User){
-    printf("************************************\n");
-    printf("************* 您好 %s *************\n", User->name);
-    printf("****** 浏览图书库存,请输入 1 ********\n");
-    printf("********* 图书查询,请输入 2 *********\n");
-    printf("********** 借阅图书,请输入 3 ********\n");
-    printf("********** 修改密码,请输入 4 ********\n");
-    printf("*************************************\n");
+void SearchBook(){
+    Libs OldBook, TempBook;
+    FILE *fp;   //访问文件的指针
+    if((fp = fopen("libs", "r")) == NULL){ //以只读方式打开libs
+        printf("操作失败\n");
+        return;
+    }  
+    printf("欢迎来到图书检索页面!\n");
+    printf("按书号查找,输入 1\n");
+    printf("按书名查找,输入 2\n");
+    printf("按作者查找,输入 3\n");
+    printf("按类别查找,输入 4\n");
+    int get_flag = 0;   //标记首次进入此菜单
+    while(1){
+        if(get_flag){
+            printf("********返回上一级*********\n");
+            printf("**** 按书号查找,输入 1 ***\n");
+            printf("**** 按书名查找,输入 2 ******\n");
+            printf("**** 按作者查找,输入 3 ******\n");
+            printf("**** 按类别查找,输入 4 ***\n");
+            printf("**** 输入其他,退出操作 *****\n");
+        }
+        int get_status;
+        scanf("%d", &get_status);
+        switch (get_status){
+            case 1:
+                printf("请输入要查询的图书书号:");
+                int temp_index;
+                scanf("%d", &temp_index);
+                while (fread(&TempBook, sizeof(Libs), 1, fp) == 1){
+                    if(TempBook.index == temp_index){
+                        SuccessFind(&TempBook);
+                        fclose(fp);
+                        return;
+                    }
+                }
+                fclose(fp);
+                printf("未查找到此书!\n");
+                break;
+            case 2:
+                printf("请输入要查询的图书书名:");
+                char temp_name[MAX_LIB_NAME];
+                scanf("%20s", temp_name);
+                while (fread(&TempBook, sizeof(Libs), 1, fp) == 1){
+                    if(strcmp(TempBook.libname, temp_name) == 0){
+                        SuccessFind(&TempBook);
+                        fclose(fp);
+                        return;
+                    }
+                }
+                fclose(fp);
+                printf("未查找到此书!\n");
+                break;
+            case 3:
+                printf("请输入要查询的作者名:");
+                char temp_author[MAX_LIB_AUTHOR];
+                scanf("%20s", temp_author);
+                while (fread(&TempBook, sizeof(Libs), 1, fp) == 1){
+                    if(strcmp(TempBook.authorname , temp_author) == 0){
+                        SuccessFind(&TempBook);
+                        fclose(fp);
+                        return;
+                    }
+                }
+                fclose(fp);
+                printf("未查找到此书!\n");
+                break;
+            case 4:
+                printf("请输入要查询的类别:");
+                printf("Science:1; Business:2; Poetry:3; Cookbook:4; Fiction:5\n");
+                int temp_category;
+                scanf("%d", &temp_category);
+                while (fread(&TempBook, sizeof(Libs), 1, fp) == 1){
+                    if(TempBook.category == temp_category){
+                        SuccessFind(&TempBook);
+                        fclose(fp);
+                        return;
+                    }
+                }
+                fclose(fp);
+                printf("未查找到此书!\n");
+                break;
+            default:
+                return;
+        }
+        printf("修改查找条件,请输入 1\n");
+        printf("结束操作,请输入 0\n");
+        int temp = 0;
+        scanf("%d", &temp);
+        if(temp == 0)   return;
+        else if(temp == 1)  get_flag = 1;
+        else{
+            printf("操作无效,自动退出\n");
+            return;
+        }       
+    }
+}
+
+void SuccessFind(const Libs *Lib){
+    printf("已找到!\n");
+    printf("ID\t书名\t\t\t作者\t\t\t出版社\t\t\t类别\t\t\t库存量\n");
+    char temp_category[10];
+    switch(Lib->category){
+        case Science:
+            strcpy(temp_category, "Science");
+            break;
+        case Business:
+            strcpy(temp_category, "Business");
+            break;
+        case Poetry:
+            strcpy(temp_category, "Poetry");
+            break;
+        case Cookbook:
+            strcpy(temp_category, "Cookbook");
+            break;
+        case Fiction:
+            strcpy(temp_category, "Fiction");
+            break;
+        default:
+            break;
+    }
+    printf("%d\t%-20s\t%-20s\t%-20s\t%-20s\t%-10d\n", Lib->index, Lib->libname, Lib->authorname, Lib->publishname, temp_category, Lib->num);
     return;
 }
 
