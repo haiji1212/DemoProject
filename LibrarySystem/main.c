@@ -220,6 +220,7 @@ void ChangePW(){
  * 
  */
 void ShowAtAdmin(){
+    sleep(1);   //休眠1s
     printf("*************************************\n");
     printf("************* 您好 Admin ************\n");
     printf("******** 浏览图书库存,请输入 1 ********\n");
@@ -230,7 +231,6 @@ void ShowAtAdmin(){
     int get_flag = 0;   //标记首次进入此菜单
     while(1){
         if(get_flag){
-            sleep(1);   //休眠1s
             printf("********返回上一级*********\n");
             printf("**** 浏览图书库存,输入 1 ***\n");
             printf("**** 删除图书,输入 2 ******\n");
@@ -240,7 +240,6 @@ void ShowAtAdmin(){
         }
         int get_num;
         scanf("%d", &get_num);
-        get_flag = 1;
         switch(get_num){
             case 1: //浏览图书库存
                 ScanBook();
@@ -257,6 +256,16 @@ void ShowAtAdmin(){
             default:
                 printf("自动退出成功\n");
                 return;
+        }
+        printf("返回上一级,请输入 1\n");
+        printf("结束操作,请输入 0\n");
+        int temp = 0;
+        scanf("%d", &temp);
+        if(temp == 0)   return;
+        else if(temp == 1)  get_flag = 1;
+        else{
+            printf("操作无效,自动退出\n");
+            return;
         }
     }
 }
