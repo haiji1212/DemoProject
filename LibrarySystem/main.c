@@ -10,7 +10,8 @@
  */
 #include<stdio.h>
 #include<string.h>
-
+#include<stdlib.h>
+#include<time.h>
 /**
  * @brief 账号定义和相关函数
  * 
@@ -43,8 +44,6 @@ void ScanUser();
 #define MAX_LIB_NAME    20
 #define MAX_LIB_AUTHOR  20
 #define MAX_LIB_PUBLISH 20
-#define ID_LIB_BASE 520  //书籍起始索引号
-#define ID_LIB_ADD  1
 enum LibCategory{
     Science = 1,
     Business,   //2
@@ -254,7 +253,7 @@ void ScanBook(){
         return;
     }   
     printf("*****LibSys 当前书籍*****\n");
-    printf("ID\t书名\t\t\t\t作者\t\t\t出版社\t\t\t\t类别\t\t\t库存量\n");
+    printf("ID\t书名\t\t\t作者\t\t\t出版社\t\t\t类别\t\t\t库存量\n");
     while (fread(&TempBook, sizeof(Libs), 1, fp) == 1) {
         char temp_category[10];
         switch(TempBook.category){
@@ -276,7 +275,7 @@ void ScanBook(){
             default:
                 break;
         }
-        printf("%d\t%s\t\t\t%s\t\t\t%s\t\t\t%s\t\t\t%d\n", TempBook.index, TempBook.libname, TempBook.authorname, TempBook.publishname, temp_category, TempBook.num);
+        printf("%d\t%-20s\t%-20s\t%-20s\t%-20s\t%-10d\n", TempBook.index, TempBook.libname, TempBook.authorname, TempBook.publishname, temp_category, TempBook.num);
     }
     fclose(fp);
     return;
@@ -289,7 +288,7 @@ void ScanBook(){
 void AddBook(){
     Libs NewBook, TempBook;
     FILE *fp;   //访问文件的指针
-    int get_time = 0;
+    srand(time(NULL));  //设置种子值
 
     if((fp = fopen("libs", "r")) == NULL){ //以只读方式打开libs
         printf("无效操作,请重试!\n");
@@ -307,7 +306,6 @@ void AddBook(){
             fclose(fp);
             return;
         }
-        get_time ++;
     }
     fclose(fp);
 
@@ -321,7 +319,8 @@ void AddBook(){
     printf("入库数量:");
 	scanf("%d", &NewBook.num);
 
-    NewBook.index = ID_LIB_BASE + ID_LIB_ADD * get_time;
+    // 生成一个在 [0, RAND_MAX] 范围内的随机整数
+    NewBook.index = rand();;
 
     if((fp = fopen("libs", "a")) == NULL){ //以写方式打开libs， w会覆盖原文件内容，这里用a
         printf("\t添加失败,请重试\n");
