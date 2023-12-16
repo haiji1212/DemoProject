@@ -355,7 +355,7 @@ void AddBook(){
     FILE *fp;   //访问文件的指针
     srand(time(NULL));  //设置种子值
 
-    if((fp = fopen("libs", "r")) == NULL){ //以只读方式打开libs
+    if((fp = fopen("libs", "r+")) == NULL){ //以读写方式打开libs
         printf("无效操作,请重试!\n");
         return;
     }
@@ -367,9 +367,25 @@ void AddBook(){
     while (fread(&TempBook, sizeof(Libs), 1, fp) == 1) {
         if (strcmp(NewBook.libname, TempBook.libname) == 0) {
             printf("书库已有此书\n");
-            //todo:若书库有这本书，则更新书籍数量信息
-            fclose(fp);
-            return;
+            printf("请问是否需要更新该书库存数量?\n");
+            printf("确认更新,请输入1\t不更新,请输入2\n");
+            int flag = 0;
+            scanf("%d", &flag);
+            if(flag == 1){
+                int add_num;
+                printf("请输入 %s 新入库数量:", NewBook.libname);
+                scanf("%d", &add_num);
+                NewBook = TempBook;
+                NewBook.num += add_num;
+                fseek(fp, -(int)(sizeof(Libs)), SEEK_CUR); //从当前文件指针位置开始计算偏移
+                fwrite(&NewBook, sizeof(Libs), 1, fp);
+                printf("\t入库成功!\n");
+                fclose(fp);
+                return;            
+            }else{
+                fclose(fp);
+                return;
+            }
         }
     }
     fclose(fp);
@@ -385,7 +401,7 @@ void AddBook(){
 	scanf("%d", &NewBook.num);
 
     // 生成一个在 [0, RAND_MAX] 范围内的随机整数
-    NewBook.index = rand();;
+    NewBook.index = rand();
 
     if((fp = fopen("libs", "a")) == NULL){ //以写方式打开libs， w会覆盖原文件内容，这里用a
         printf("\t添加失败,请重试\n");
