@@ -52,12 +52,23 @@ typedef struct Libs{
     int num;    //书籍进库量
 }Libs;
 
+/**
+ * @brief 借书情况登记
+ * 
+ */
+typedef struct Borrows{
+    Users Borrower;     //保存借书人信息
+    Libs BorrowBook;    //保存借阅图书信息
+    int borrow_time;    //借阅天数
+}Borrows;
+
+
 void ShowAboutLogin();
 int IsLogin(int num);
 void Enroll();
 void Login();
 void ChangePW();
-void ShowAtAdmin();
+void ShowAtAdmin(const Users *user);
 void ShowAtUser(const Users *User);
 void ScanBook();
 void DeleteBook();
@@ -65,6 +76,8 @@ void AddBook();
 void ScanUser();
 void SearchBook();
 void SuccessFind(const Libs *Lib);
+void RegisterForBorrowing(const Users *User);
+void LookForRegister(const Users *User);
 
 /**
  * @brief 注册登录页面显示
@@ -160,7 +173,7 @@ void Login(){
                 printf("\t您的id为%d!\n", TempUser.id);  
                 fclose(fp);
                 if(strcmp(TempUser.name, ADMIN_NAME) == 0){   //如果是管理员，进入管理员页面
-                    ShowAtAdmin();
+                    ShowAtAdmin(&TempUser);
                     return;
                 }
                 else{   //如果不是管理员，进入普通用户页面
@@ -225,7 +238,7 @@ void ChangePW(){
  * @brief 管理者页面显示
  * 
  */
-void ShowAtAdmin(){
+void ShowAtAdmin(const Users *user){
     sleep(1);   //休眠1s
     printf("*************************************\n");
     printf("************* 您好 Admin ************\n");
@@ -233,6 +246,7 @@ void ShowAtAdmin(){
     printf("********** 删除图书,请输入 2 *********\n");
     printf("********** 添加图书,请输入 3 *********\n");
     printf("******** 浏览用户信息,请输入 4 ********\n");
+    printf("******** 浏览借阅信息,请输入 5 ********\n");
     printf("*************************************\n");
     int get_flag = 0;   //标记首次进入此菜单
     while(1){
@@ -242,6 +256,7 @@ void ShowAtAdmin(){
             printf("**** 删除图书,输入 2 ******\n");
             printf("**** 添加图书,输入 3 ******\n");
             printf("**** 浏览用户信息,输入 4 ***\n");
+            printf("**** 浏览借阅信息,输入 5 ***\n");
             printf("**** 输入其他,退出操作 *****\n");
         }
         int get_num;
@@ -258,6 +273,9 @@ void ShowAtAdmin(){
                 break;
             case 4: //浏览用户信息
                 ScanUser();
+                break;
+            case 5: //浏览借阅信息
+                LookForRegister(user);
                 break;
             default:
                 printf("自动退出成功\n");
@@ -312,10 +330,10 @@ void ShowAtUser(const Users *User){
                 SearchBook();
                 break;
             case 3: //借书登记
-                
+                RegisterForBorrowing(User);
                 break;
             case 4: //查看借阅信息
-                
+                LookForRegister(User);
                 break;
             case 5: //修改密码
                 ChangePW();
@@ -503,6 +521,10 @@ void ScanUser(){
     return;
 }
 
+/**
+ * @brief 查询图书
+ * 
+ */
 void SearchBook(){
     Libs OldBook, TempBook;
     FILE *fp;   //访问文件的指针
@@ -601,6 +623,11 @@ void SearchBook(){
     }
 }
 
+/**
+ * @brief 打印查询到的图书信息
+ * 
+ * @param Lib
+ */
 void SuccessFind(const Libs *Lib){
     printf("已找到!\n");
     printf("ID\t书名\t\t\t作者\t\t\t出版社\t\t\t类别\t\t\t库存量\n");
@@ -626,6 +653,101 @@ void SuccessFind(const Libs *Lib){
     }
     printf("%d\t%-20s\t%-20s\t%-20s\t%-20s\t%-10d\n", Lib->index, Lib->libname, Lib->authorname, Lib->publishname, temp_category, Lib->num);
     return;
+}
+
+/**
+ * @brief 借书登记
+ * 
+ * @param User 
+ */
+void RegisterForBorrowing(const Users *User){
+    Borrows NewBorrow, TempBorrow;
+    NewBorrow.Borrower.id = User->id;
+    strcpy(NewBorrow.Borrower.name, User->name);
+    strcpy(NewBorrow.Borrower.pw, User->pw);
+    printf("你好!%s\n", User->name);
+    printf("请输入您想要借阅的图书书名:");
+    char temp_bookname[MAX_LIB_NAME];
+    scanf("%20s", temp_bookname);
+
+    Libs TempBook;
+    FILE *fp1, *fp2;   //访问文件的指针
+    if((fp1 = fopen("libs", "r+")) == NULL){ //以读写方式打开libs
+        printf("操作失败\n");
+        return;
+    } 
+    while (fread(&TempBook, sizeof(Libs), 1, fp1) == 1){
+        if(strcmp(TempBook.libname, temp_bookname) == 0){
+            NewBorrow.BorrowBook = TempBook;
+            if(TempBook.num < 1){
+                printf("不好意思,图书库存不足\n");
+                return;
+            }
+            if((fp2 = fopen("borrowlist", "r+")) == NULL){ //以读写方式打开borrowlist
+                printf("操作失败!\n");
+                return;
+            }    
+            while (fread(&TempBorrow, sizeof(Borrows), 1, fp2) == 1){
+                if((strcmp(NewBorrow.Borrower.name, TempBorrow.Borrower.name) == 0 ) && (strcmp(NewBorrow.BorrowBook.libname, TempBorrow.BorrowBook.libname) == 0 )){   //该用户已借阅此书
+                    printf("您已借阅%s\n", TempBook.libname);
+                    fclose(fp2);
+                    return;
+                }
+            }
+            printf("请输入您需要的借阅天数:");
+            int get_days;
+            scanf("%d", &get_days);
+            NewBorrow.borrow_time = get_days;
+            if((fp2 = fopen("borrowlist", "a")) == NULL){ //以写方式打开borrowlist， w会覆盖原文件内容，这里用a
+                printf("\t操作失败,请重试\n");
+                return;
+            }              
+            fwrite(&NewBorrow, sizeof(Borrows), 1, fp2);         
+            TempBook.num --;  
+            fseek(fp1, -(int)(sizeof(Libs)), SEEK_CUR); //从当前文件指针位置开始计算偏移
+            fwrite(&TempBook, sizeof(Libs), 1, fp1);
+            fclose(fp1);
+            fclose(fp2);   
+            printf("登记成功!\n");           
+            return;
+        }
+    }
+    fclose(fp1);
+    printf("未查找到此书!\n");
+}
+
+/**
+ * @brief 查看借阅信息
+ * 
+ * @param User 
+ */
+void LookForRegister(const Users *User){
+    Borrows TempBorrow;
+    FILE *fp;   //访问文件的指针
+    if((fp = fopen("borrowlist", "r")) == NULL){ //以只读方式打开borrowlist
+        printf("操作失败,请重试!\n");
+        return;
+    } 
+    if(strcmp(User->name, ADMIN_NAME) == 0){   //管理员可查看所有用户的借书信息
+        printf("*****LibSys 借阅信息*****\n");
+        printf("用户id\t\t\t用户名\t\t\t书名\t\t\t借阅天数\n");
+        while (fread(&TempBorrow, sizeof(Borrows), 1, fp) == 1) {
+            printf("%d\t\t\t%-20s\t%-20s\t%d\n", TempBorrow.Borrower.id, TempBorrow.Borrower.name, TempBorrow.BorrowBook.libname, TempBorrow.borrow_time);
+        }
+        fclose(fp);
+        return;
+    }
+    else{
+        printf("*****您的 借阅信息*****\n");
+        printf("书名\t\t\t作者\t\t\t出版社\t\t\t借阅天数\n");  
+        while (fread(&TempBorrow, sizeof(Borrows), 1, fp) == 1) {
+            if((strcmp(User->name, TempBorrow.Borrower.name) == 0)){
+                printf("%-20s\t%-20s\t%-20s\t%d天\n", TempBorrow.BorrowBook.libname, TempBorrow.BorrowBook.authorname, TempBorrow.BorrowBook.publishname, TempBorrow.borrow_time);
+            }
+        }
+        fclose(fp);
+        return;
+    }
 }
 
 /**
